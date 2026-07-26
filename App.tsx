@@ -522,15 +522,15 @@ const App: React.FC = () => {
 
       <Header onContactClick={() => setShowContactModal(true)} currentView={view} onViewChange={handleViewChange} />
 
-      <main className="relative z-10 mx-auto max-w-6xl px-4 pt-36 sm:pt-32 md:pt-40 lg:px-8">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 pt-44 sm:pt-36 md:pt-40 lg:px-8">
         
         {view === 'landing' && (
           <section className="relative mx-auto max-w-6xl min-h-[85vh] flex flex-col justify-center overflow-hidden">
 
             {/* Background orbs */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] landing-orb bg-purple-600/20" style={{ animation: 'orbPulse 5s ease-in-out infinite' }} />
-            <div className="absolute top-1/3 left-[20%] w-[150px] h-[150px] md:w-[300px] md:h-[300px] landing-orb bg-violet-500/10" style={{ animation: 'orbPulse 7s ease-in-out infinite 1s' }} />
-            <div className="absolute top-1/2 right-[15%] w-[120px] h-[120px] md:w-[250px] md:h-[250px] landing-orb bg-fuchsia-500/10" style={{ animation: 'orbPulse 6s ease-in-out infinite 2s' }} />
+            <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] landing-orb bg-purple-600/20" style={{ animation: 'orbPulse 5s ease-in-out infinite' }} />
+            <div className="pointer-events-none absolute top-1/3 left-[20%] w-[150px] h-[150px] md:w-[300px] md:h-[300px] landing-orb bg-violet-500/10" style={{ animation: 'orbPulse 7s ease-in-out infinite 1s' }} />
+            <div className="pointer-events-none absolute top-1/2 right-[15%] w-[120px] h-[120px] md:w-[250px] md:h-[250px] landing-orb bg-fuchsia-500/10" style={{ animation: 'orbPulse 6s ease-in-out infinite 2s' }} />
 
             {/* Spinning rings behind title */}
             <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] pointer-events-none" style={{ animation: 'orbSpin 40s linear infinite' }}>
@@ -558,12 +558,10 @@ const App: React.FC = () => {
 
               <button
                 onClick={() => handleViewChange('home')}
-                className="group relative inline-flex items-center gap-3 rounded-xl bg-purple-900/60 border border-purple-400/25 px-8 py-5 md:px-10 md:py-6 text-xs md:text-base font-bold text-white uppercase tracking-wider transition-all duration-300 hover:bg-purple-800/60 hover:border-purple-400/40 hover:shadow-[0_0_40px_rgba(147,51,234,0.15)] active:scale-[0.98]"
+                className="inline-flex items-center gap-3 rounded-xl bg-white text-black px-8 py-4 md:px-10 md:py-5 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-zinc-200 active:scale-[0.97]"
               >
-                <span className="relative flex items-center gap-3">
-                  Try Tabib
-                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-                </span>
+                Try Tabib
+                <ArrowRight size={16} />
               </button>
             </div>
 
@@ -1694,58 +1692,43 @@ const App: React.FC = () => {
         {/* Contact Modal */}
         {showContactModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#0F0A1F] border border-brand-primary/20 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(124,58,237,0.2)] relative overflow-hidden animate-slide-up-fade">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary/20 blur-[50px] rounded-full pointer-events-none"></div>
-                
-                <button 
+            <div className="bg-black border border-white/10 rounded-2xl w-full max-w-md relative overflow-hidden animate-slide-up-fade">
+
+                <button
                     onClick={() => setShowContactModal(false)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10"
                 >
                     <X size={20} />
                 </button>
 
-                <div className="p-8 text-center">
-                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
-                        <Mail size={32} className="text-brand-accent" />
+                <div className="p-8">
+                    <div className="w-12 h-12 rounded-xl border border-white/10 bg-white/[0.04] flex items-center justify-center mb-5">
+                        <Mail size={20} className="text-zinc-400" />
                     </div>
-                    
-                    <h3 className="text-2xl font-bold text-white mb-2">Contact Support</h3>
-                    <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                         Have questions about your diagnosis or need technical assistance? Our Tabib specialists are ready to help.
+
+                    <h3 className="text-xl font-bold text-white mb-1">Contact Us</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed mb-6">
+                        Questions, feedback, or need help? Drop us a line.
                     </p>
-                    
-                    <div className="space-y-4">
-                        <div className="p-4 bg-white/5 rounded-xl border border-white/10 flex flex-col sm:flex-row items-center justify-between group hover:border-brand-primary/30 transition-colors gap-2 sm:gap-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0">
-                                    <Mail size={14} />
-                                </div>
-                                <span className="text-gray-300 text-sm font-medium break-all">lvhealthanalysis@gmail.com</span>
-                            </div>
-                            <button 
-                                onClick={handleCopyEmail}
-                                className="p-2 text-gray-500 hover:text-white transition-colors relative"
-                                title="Copy to clipboard"
-                            >
-                                {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-                            </button>
-                        </div>
-                        
-                        <a 
-                            href="mailto:lvhealthanalysis@gmail.com"
-                            className="flex items-center justify-center gap-2 w-full py-3.5 bg-brand-primary hover:bg-purple-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-0.5"
+
+                    <div className="p-4 rounded-xl border border-white/10 bg-white/[0.03] flex items-center justify-between mb-4">
+                        <span className="text-zinc-300 text-sm font-medium break-all">lvhealthanalysis@gmail.com</span>
+                        <button
+                            onClick={handleCopyEmail}
+                            className="p-2 text-zinc-500 hover:text-white transition-colors shrink-0"
+                            title="Copy to clipboard"
                         >
-                            <ExternalLink size={16} />
-                            Open Mail App
-                        </a>
+                            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+                        </button>
                     </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-white/5">
-                        <p className="text-[10px] text-gray-600 uppercase tracking-widest">
-                            Average Response Time: &lt; 2 Hours
-                        </p>
-                    </div>
+
+                    <a
+                        href="mailto:lvhealthanalysis@gmail.com"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black text-sm font-bold rounded-xl transition-all hover:bg-zinc-200 active:scale-[0.97]"
+                    >
+                        <ExternalLink size={16} />
+                        Open Mail App
+                    </a>
                 </div>
             </div>
           </div>

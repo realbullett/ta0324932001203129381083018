@@ -1,0 +1,7 @@
+{
+  "name": "LV Assistant Doctor",
+  "description": "PhD-level AI health diagnostics and medication analysis. Instant, accurate medical insights by LV Health.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

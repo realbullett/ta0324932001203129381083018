@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LV Assistant Doctor | AI-Powered Precision Diagnostics</title>
+    <meta name="description" content="Experience advanced AI-guided health assessment, medication analysis, and doctor-ready reports inside a cinematic diagnostic interface." />
+    <meta name="keywords" content="AI doctor, medical diagnosis, symptom checker, medication identifier, health AI, LV Health, clinical analysis" />
+    <meta name="author" content="LV Health" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lv-assistant-doctor.web.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LV Assistant Doctor | AI-Powered Medical Diagnosis" />
+    <meta property="og:description" content="Get advanced symptom guidance, emergency triage, medication analysis, and doctor-ready reports with LV Assistant Doctor." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Stethoscope.png" />
+    <meta property="og:url" content="https://lv-assistant-doctor.web.app/" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="LV Assistant Doctor | AI-Powered Medical Diagnosis" />
+    <meta property="twitter:description" content="Get advanced symptom guidance, emergency triage, medication analysis, and doctor-ready reports with LV Assistant Doctor." />
+    <meta property="twitter:image" content="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Stethoscope.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "LV Assistant Doctor",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web Browser",
+        "description": "Advanced AI-powered health diagnostic and medication analysis tool.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "provider": {
+          "@type": "Organization",
+          "name": "LV Health"
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Outfit"', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                dark: '#000000',
+                panel: '#050505',
+                border: '#161616',
+                primary: '#737373',
+                accent: '#d4d4d8',
+                glow: '#fafafa',
+              }
+            },
+            animation: {
+              'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'slide-up-fade': 'slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'glow': 'glow 2.2s ease-in-out infinite alternate',
+              'float': 'float 6s ease-in-out infinite',
+              'spin-slow': 'spin 18s linear infinite',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              slideUpFade: {
+                '0%': { opacity: '0', transform: 'translateY(40px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              glow: {
+                '0%': { boxShadow: '0 0 0 rgba(255,255,255,0)' },
+                '100%': { boxShadow: '0 0 35px rgba(255,255,255,0.12)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-16px)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @keyframes floatCard {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-8px) rotate(0.5deg); }
+      }
+      @keyframes floatCardOpposite {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(8px) rotate(-0.5deg); }
+      }
+      .animate-float-card {
+        animation: floatCard 6s ease-in-out infinite;
+      }
+      .animate-float-card-opposite {
+        animation: floatCardOpposite 7s ease-in-out infinite;
+      }
+      html, body, #root {
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        background: #000;
+        color: #f5f5f5;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 28%),
+          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.04), transparent 20%),
+          radial-gradient(circle at 80% 10%, rgba(255,255,255,0.05), transparent 18%),
+          #000;
+        pointer-events: none;
+        z-index: -3;
+      }
+      .void-stars {
+        position: fixed;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 15% 25%, rgba(255,255,255,0.7) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 78% 14%, rgba(255,255,255,0.5) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 62% 78%, rgba(255,255,255,0.45) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 40% 60%, rgba(255,255,255,0.35) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 90% 52%, rgba(255,255,255,0.4) 0 1px, transparent 1.5px);
+        opacity: 0.45;
+        pointer-events: none;
+        z-index: -2;
+      }
+      .void-vignette {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle, transparent 35%, rgba(0,0,0,0.72) 100%);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .orb-stage {
+        position: relative;
+        overflow: hidden;
+      }
+      .orb-stage::before {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        background:
+          linear-gradient(115deg, rgba(255,255,255,0.05), transparent 28%, transparent 72%, rgba(255,255,255,0.04)),
+          radial-gradient(circle, rgba(255,255,255,0.08), transparent 58%);
+        transform: rotate(8deg);
+        pointer-events: none;
+      }
+      .orb-core {
+        background:
+          radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(180,180,180,0.22) 16%, rgba(255,255,255,0.08) 30%, rgba(0,0,0,0.95) 60%),
+          #030303;
+        box-shadow:
+          0 0 40px rgba(255,255,255,0.12),
+          0 0 120px rgba(255,255,255,0.08),
+          inset 0 0 40px rgba(255,255,255,0.08);
+      }
+      .orb-ring {
+        border: 1px solid rgba(255,255,255,0.14);
+        box-shadow: 0 0 30px rgba(255,255,255,0.06);
+      }
+      .scan-line {
+        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.22), transparent);
+        animation: float 4s ease-in-out infinite;
+      }
+      .glass-panel {
+        background: rgba(5, 5, 5, 0.78);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+      }
+      .text-gradient {
+        background: linear-gradient(to right, #f5f5f5, #71717a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .report-content {
+        font-family: 'Outfit', sans-serif;
+        color: #1e293b;
+        line-height: 1.6;
+      }
+      .report-content h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .report-content h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #334155;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .report-content p {
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      .report-content ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+      .report-content li {
+        margin-bottom: 6px;
+      }
+      .report-content strong {
+        color: #0f172a;
+        font-weight: 600;
+      }
+      .report-header-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #64748b;
+        margin-bottom: 32px;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 16px;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@19.2.0/client",
+          "react-dom/": "https://esm.sh/react-dom@19.2.0/",
+          "react/": "https://esm.sh/react@19.2.0/",
+          "@google/genai": "https://esm.sh/@google/genai@1.30.0",
+          "lucide-react": "https://esm.sh/lucide-react@0.554.0",
+          "three": "https://esm.sh/three@0.185.1"
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-BL5eoAEi.js"></script>
+  </head>
+  <body>
+    <div class="void-stars"></div>
+    <div class="void-vignette"></div>
+    <div id="root"></div>
+  </body>
+</html>

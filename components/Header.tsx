@@ -10,104 +10,122 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onContactClick, currentView, onViewChange }) => {
   return (
-    <header className="fixed w-full z-50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-        <div className="h-20 md:h-24 flex items-center justify-between rounded-full border border-white/10 bg-black/65 px-5 md:px-8 shadow-[0_20px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
-        <div className="flex items-center gap-3 md:gap-5 group cursor-pointer" onClick={() => onViewChange('landing')}>
-          <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center transition-transform duration-500 group-hover:rotate-[360deg] group-hover:scale-110">
-            <div className="absolute inset-0 rounded-full bg-white/10 blur-xl"></div>
-            <img src="/logo.png" alt="Tabib" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_16px_rgba(255,255,255,0.35)]" />
-          </div>
-          
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none">
-              Tabib
-            </h1>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3 md:gap-6">
-          <div className="hidden md:flex items-center rounded-full border border-white/10 bg-white/5 p-1">
-            <button
-              onClick={() => onViewChange('diagnosis')}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                currentView === 'diagnosis' 
-                  ? 'bg-white text-black shadow-lg'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Stethoscope size={14} />
-              Diagnosis
-            </button>
-            <button
-              onClick={() => onViewChange('medication')}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                currentView === 'medication' 
-                  ? 'bg-zinc-200 text-black shadow-lg'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Pill size={14} />
-              Meds Info
-            </button>
+    <header className="header-bar" style={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 50 }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '16px 16px 0' }}>
+        <div className="header-pill" style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', paddingLeft: '20px', paddingRight: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => onViewChange('landing')}>
+            <img src="/logo.png" alt="Tabib" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+            <span style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.025em' }}>Tabib</span>
           </div>
 
-          <button
-            onClick={() => onViewChange('about')}
-            className={`hidden sm:flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition-all md:px-5 md:py-2.5 md:text-xs ${
-              currentView === 'about'
-                ? 'border-white/20 bg-white/10 text-white'
-                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10 hover:text-white'
-            }`}
-          >
-            About Us
-          </button>
-          <button
-            onClick={onContactClick}
-            className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white md:px-5 md:py-2.5 md:text-xs"
-          >
-            Contact Us
-          </button>
-        </div>
-      </div>
-      </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="header-desktop-tabs" style={{ display: 'none', alignItems: 'center', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)', backgroundColor: 'rgba(255,255,255,0.06)', padding: '4px', gap: '4px' }}>
+              <button
+                onClick={() => onViewChange('diagnosis')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '9999px', padding: '6px 16px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+                  backgroundColor: currentView === 'diagnosis' ? 'white' : 'transparent',
+                  color: currentView === 'diagnosis' ? 'black' : '#9ca3af',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                <Stethoscope size={14} />
+                Diagnosis
+              </button>
+              <button
+                onClick={() => onViewChange('medication')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '9999px', padding: '6px 16px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+                  backgroundColor: currentView === 'medication' ? '#e4e4e7' : 'transparent',
+                  color: currentView === 'medication' ? 'black' : '#9ca3af',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                <Pill size={14} />
+                Meds Info
+              </button>
+            </div>
 
-      <div className="md:hidden absolute top-24 w-full px-4">
-        <div className="mx-auto flex w-max items-center rounded-full border border-white/10 bg-black/80 p-1 backdrop-blur-md">
-            <button
-              onClick={() => onViewChange('diagnosis')}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                currentView === 'diagnosis' 
-                  ? 'bg-white text-black shadow-lg'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Stethoscope size={14} />
-              Diagnosis
-            </button>
-            <button
-              onClick={() => onViewChange('medication')}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                currentView === 'medication' 
-                  ? 'bg-zinc-200 text-black shadow-lg'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Pill size={14} />
-              Meds Info
-            </button>
             <button
               onClick={() => onViewChange('about')}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                currentView === 'about' 
-                  ? 'bg-white text-black shadow-lg'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
+              className="header-about-btn"
+              style={{
+                display: 'none', alignItems: 'center', gap: '8px', borderRadius: '9999px', padding: '8px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
+                border: currentView === 'about' ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: currentView === 'about' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                color: currentView === 'about' ? 'white' : '#9ca3af',
+              }}
             >
-              About
+              About Us
+            </button>
+            <button
+              onClick={onContactClick}
+              className="header-contact-btn"
+              style={{
+                display: 'none', alignItems: 'center', gap: '8px', borderRadius: '9999px', padding: '8px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                color: '#9ca3af',
+              }}
+            >
+              Contact Us
             </button>
           </div>
+        </div>
       </div>
+
+      <div className="header-mobile-nav" style={{ display: 'flex', maxWidth: '320px', margin: '8px auto 0', padding: '0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '4px', gap: '2px', boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.12)' }}>
+          <button
+            onClick={() => onViewChange('diagnosis')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '9999px', padding: '6px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer',
+              backgroundColor: currentView === 'diagnosis' ? 'white' : 'transparent',
+              color: currentView === 'diagnosis' ? 'black' : '#9ca3af',
+            }}
+          >
+            <Stethoscope size={12} />
+            Diagnosis
+          </button>
+          <button
+            onClick={() => onViewChange('medication')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '9999px', padding: '6px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer',
+              backgroundColor: currentView === 'medication' ? '#e4e4e7' : 'transparent',
+              color: currentView === 'medication' ? 'black' : '#9ca3af',
+            }}
+          >
+            <Pill size={12} />
+            Meds
+          </button>
+          <button
+            onClick={() => onViewChange('about')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '9999px', padding: '6px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer',
+              backgroundColor: currentView === 'about' ? 'white' : 'transparent',
+              color: currentView === 'about' ? 'black' : '#9ca3af',
+            }}
+          >
+            About
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .header-desktop-tabs { display: flex !important; }
+          .header-about-btn { display: flex !important; }
+          .header-contact-btn { display: flex !important; }
+          .header-mobile-nav { display: none !important; }
+          .header-pill { height: 96px !important; padding-left: 32px !important; padding-right: 32px !important; }
+        }
+        @media (min-width: 640px) {
+          .header-about-btn { display: flex !important; }
+          .header-contact-btn { display: flex !important; }
+        }
+        .header-bar { pointer-events: none; }
+        .header-pill, .header-mobile-nav { pointer-events: auto; }
+      `}</style>
     </header>
   );
 };

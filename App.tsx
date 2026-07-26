@@ -29,6 +29,7 @@ const App: React.FC = () => {
   const [showReportPrompt, setShowReportPrompt] = useState(false);
   const [notebookEntries, setNotebookEntries] = useState<{icon: string; label: string; value: string}[]>([]);
   const [rightTab, setRightTab] = useState<'map' | 'notes'>('map');
+  const [hasNewNotes, setHasNewNotes] = useState(false);
   const notebookContainerRef = useRef<HTMLDivElement>(null);
   const [medicationState, setMedicationState] = useState<MedicationState>({
     results: null,
@@ -287,7 +288,7 @@ const App: React.FC = () => {
           }
           return updated;
         });
-        setRightTab('notes');
+        setHasNewNotes(true);
       }
 
       if (data.is_emergency) {
@@ -788,12 +789,15 @@ const App: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setRightTab('notes')}
+                      onClick={() => { setRightTab('notes'); setHasNewNotes(false); }}
                       className={`flex-1 pb-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 relative ${
                         rightTab === 'notes' ? 'border-purple-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
                       Notes
+                      {hasNewNotes && rightTab !== 'notes' && (
+                        <span className="absolute -top-0.5 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      )}
                       {notebookEntries.length > 0 && (
                         <span className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[8px] font-bold bg-purple-500/30 text-purple-300 rounded-full">
                           {notebookEntries.length}
@@ -1450,11 +1454,6 @@ const App: React.FC = () => {
                       <p className="text-base md:text-lg text-gray-200 leading-relaxed font-light">
                         {diagnosisState.results.general_advice}
                       </p>
-                      <div className="pt-4">
-                        <div className="inline-block bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-[11px] text-red-300 uppercase tracking-wider w-full md:w-auto hover:bg-red-500/15 transition-colors">
-                           <span className="font-bold text-red-400 mr-2 block md:inline">DISCLAIMER:</span> {diagnosisState.results.disclaimer}
-                        </div>
-                      </div>
                     </div>
                     <div className="flex flex-col justify-center border-t md:border-t-0 md:border-l border-white/5 pt-6 md:pt-0 pl-0 md:pl-10">
                       {diagnosisState.results.conditions.some(c => ['High', 'Critical'].includes(c.urgency)) ? (
@@ -1628,10 +1627,7 @@ const App: React.FC = () => {
                         </div>
                      </div>
                   </div>
-                  
-                  <div className="text-center text-xs text-gray-500 mt-8 max-w-2xl mx-auto">
-                    {medicationState.results.disclaimer}
-                  </div>
+                </div>
                </>
              )}
            </div>

@@ -3,12 +3,12 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>https://tabib.cc/</loc>
+    <loc>https://www.tabib.cc/</loc>
     <lastmod>2025-07-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tabib.cc/" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://tabib.cc/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tabib.cc/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.tabib.cc/" />
   </url>
 
 </urlset>

@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tabib.cc/sitemap.xml
+Sitemap: https://www.tabib.cc/sitemap.xml
 
 # Tabib - Qatar's AI Health Assistant
-# https://tabib.cc/
+# https://www.tabib.cc/

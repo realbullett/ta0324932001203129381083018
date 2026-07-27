@@ -1194,7 +1194,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <button 
                     onClick={handleViewReport}
-                    className="w-full sm:w-auto px-8 py-4 bg-brand-accent text-white font-bold rounded-2xl hover:scale-105 transition-transform shadow-lg shadow-brand-accent/20"
+                    className="w-full sm:w-auto px-8 py-4 bg-brand-accent text-black font-bold rounded-2xl hover:scale-105 transition-transform shadow-lg shadow-brand-accent/20"
                   >
                     Yes, Prepare Report
                   </button>

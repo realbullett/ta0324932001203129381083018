@@ -52,6 +52,98 @@ const CHAT_DIAGNOSIS_SCHEMA = {
       type: Type.STRING,
       description: "Only populated when is_complete is true. A warm, clear summary of what to do next, what to watch for, and when to come back. Like a doctor's discharge instructions. Keep it friendly but thorough."
     },
+    mechanism_of_injury: {
+      type: Type.OBJECT,
+      description: "ONLY fill this for trauma/injury cases. Leave null if not applicable.",
+      properties: {
+        mechanism: { type: Type.STRING, description: "How the injury happened (e.g., 'Fall onto outstretched hand (FOOSH)', 'Direct blow', 'Motor vehicle accident')" },
+        height_of_fall: { type: Type.STRING, description: "If fall: standing height, stairs, sports-related, etc." },
+        surface: { type: Type.STRING, description: "Surface landed on: concrete, grass, carpet, etc." },
+        direction_of_impact: { type: Type.STRING, description: "How the body part was positioned at impact" },
+        immediate_symptoms: { type: Type.STRING, description: "What happened right after: instant pain, popping sound, swelling, etc." },
+      }
+    },
+    pain_location: {
+      type: Type.OBJECT,
+      description: "Detailed anatomical pain location. Fill as specifically as possible.",
+      properties: {
+        anatomical_site: { type: Type.STRING, description: "Specific location (e.g., 'Distal radius, radial side', 'Ulnar aspect of wrist', 'Central anterior chest')" },
+        side: { type: Type.STRING, enum: ["Left", "Right", "Bilateral", "Central", "N/A"], description: "Laterality" },
+        depth: { type: Type.STRING, description: "Deep bone pain vs surface/soft tissue pain" },
+        point_tenderness: { type: Type.STRING, description: "Specific point(s) that are tender to palpation" },
+        radiates: { type: Type.STRING, description: "Does pain radiate? Where?" },
+      }
+    },
+    pain_characteristics: {
+      type: Type.OBJECT,
+      description: "Detailed pain quality and pattern.",
+      properties: {
+        quality: { type: Type.STRING, description: "Sharp, aching, throbbing, burning, stabbing, etc." },
+        pattern: { type: Type.STRING, description: "Constant, intermittent, only with movement, night pain, etc." },
+        severity_rest: { type: Type.STRING, description: "Pain level at rest (1-10 or description)" },
+        severity_movement: { type: Type.STRING, description: "Pain level with movement/activity" },
+        aggravating_factors: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What makes pain worse" },
+        alleviating_factors: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What makes pain better" },
+      }
+    },
+    functional_limitations: {
+      type: Type.OBJECT,
+      description: "What the patient can and cannot do. Very useful for functional assessment.",
+      properties: {
+        can_rotate_wrist: { type: Type.STRING, description: "Can they pronate/supinate (turn palm up/down)?" },
+        can_grip: { type: Type.STRING, description: "Can they grip objects? Strength?" },
+        can_write: { type: Type.STRING, description: "Can they write or perform fine motor tasks?" },
+        can_open_doors: { type: Type.STRING, description: "Can they use doorknobs, jars, etc.?" },
+        can_lift: { type: Type.STRING, description: "Can they lift objects? Weight limit?" },
+        finger_movement: { type: Type.STRING, description: "Can they move all fingers normally?" },
+        other_limitations: { type: Type.STRING, description: "Any other functional limitations reported" },
+      }
+    },
+    physical_exam_findings: {
+      type: Type.OBJECT,
+      description: "Observable findings reported by the patient or noted during consultation.",
+      properties: {
+        swelling: { type: Type.STRING, description: "Location and degree of swelling" },
+        bruising: { type: Type.STRING, description: "Bruising present? Location, color, extent" },
+        deformity: { type: Type.STRING, description: "Any visible deformity (dinner fork, angulation, etc.)" },
+        skin_condition: { type: Type.STRING, description: "Skin intact? Cuts, abrasions, punctures?" },
+        temperature: { type: Type.STRING, description: "Warmth or coolness of the affected area" },
+        range_of_motion: { type: Type.STRING, description: "Active ROM if reported" },
+        tenderness_points: { type: Type.STRING, description: "Specific points of tenderness on palpation" },
+      }
+    },
+    neurovascular_assessment: {
+      type: Type.OBJECT,
+      description: "Neurovascular status — critical for fractures and crush injuries.",
+      properties: {
+        sensation: { type: Type.STRING, description: "Finger/toe sensation: normal, decreased, numb, tingling" },
+        finger_movement: { type: Type.STRING, description: "Can they actively move all digits?" },
+        capillary_refill: { type: Type.STRING, description: "Capillary refill time if known (normal <2 sec)" },
+        pulse: { type: Type.STRING, description: "Radial/dorsalis pedis pulse if known" },
+        color: { type: Type.STRING, description: "Color of distal extremity: normal, pale, blue, mottled" },
+      }
+    },
+    previous_injuries: {
+      type: Type.STRING,
+      description: "Any previous injuries, surgeries, fractures, arthritis, bone disease, or osteoporosis risk factors for the affected area."
+    },
+    tetanus_status: {
+      type: Type.STRING,
+      description: "ONLY if skin is broken (cut, abrasion, puncture). Last tetanus vaccination year if known."
+    },
+    treatment_already_given: {
+      type: Type.STRING,
+      description: "What treatment has the patient already tried? Ice, medications, splint, brace, etc."
+    },
+    patient_goals: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "Patient's specific concerns or goals (e.g., 'wants to know if they can return to work', 'concerned about ability to exercise', 'wants pain management options')"
+    },
+    imaging_history: {
+      type: Type.STRING,
+      description: "Any previous imaging for this condition: X-rays, MRI, CT, ultrasound, and results if known."
+    },
     diagnosis: {
       type: Type.OBJECT,
       properties: {
@@ -241,7 +333,6 @@ export const chatDiagnosis = async (history: Message[], image?: string): Promise
       - Keep them on the line — tell them to keep describing what's happening
       
       RULES:
-      - Always remind people you're an AI, not a real doctor.
       - Tell them to see a real doctor if they're worried.
       - Never use medical jargon without explaining it.
       - Never rush to a diagnosis. It's better to ask more questions.
@@ -255,6 +346,34 @@ export const chatDiagnosis = async (history: Message[], image?: string): Promise
       - Include: symptom details, duration, pain level, location, medications, allergies, medical history, age, gender, and any risk factors.
       - If a previous entry is now outdated (e.g., patient corrected something), UPDATE it rather than adding a duplicate.
       - Use appropriate emojis: 🤕 for symptoms, ⏱️ for timing, 📍 for location, 🌡️ for vitals, 💊 for medications, 📋 for history, ❤️ for cardiac, ⚠️ for risks, 🩺 for general notes.
+      
+      DETAILED CLINICAL DATA COLLECTION:
+      Beyond the basic info, you MUST also collect these details when relevant. Ask naturally, not like a checklist:
+      
+      FOR INJURIES/TRAUMA:
+      - Mechanism of injury: How exactly did it happen? (FOOSH, direct blow, MVC, sports, etc.)
+      - Height of fall and surface landed on
+      - Direction of impact and body position at time of injury
+      - Immediate symptoms after injury (instant pain, popping sound, swelling onset)
+      
+      FOR PAIN COMPLAINTS:
+      - Exact anatomical location (radial side vs ulnar side, deep vs superficial, point tenderness)
+      - Pain quality (sharp, aching, throbbing, burning)
+      - Pain pattern (constant vs intermittent, with movement only, night pain)
+      - Severity at rest vs with movement
+      - What specifically makes it better or worse
+      
+      FOR ALL CONDITIONS:
+      - Functional limitations: What can't they do? (grip, write, rotate wrist, open doors, lift, walk, etc.)
+      - Observable findings: swelling, bruising, deformity, skin breaks, warmth/coolness
+      - Neurovascular status if limb involved: sensation, movement, color, pulse, capillary refill
+      - Previous injuries/surgeries to the same area
+      - Previous imaging (X-rays, MRI, CT) and results
+      - Current treatment: ice, medications, splint/brace, and whether it helped
+      - Tetanus status if skin is broken
+      - Patient's specific goals or concerns (return to work, exercise, pain management, etc.)
+      
+      These details are CRITICAL for the clinical report. Do not skip them.
       
       DOCTOR TONE:
       - Every response MUST include doctor_tone — reflect how a real doctor would feel about what the patient is telling you.
@@ -555,31 +674,68 @@ export const generateClinicalReport = async (diagnosisData: DiagnosisResponse, u
          - Include: chief complaint, symptom onset, duration, severity (pain scale if given), location, and aggravating/alleviating factors.
          - Use <ul> to list individual reported symptoms.
 
-      3. SECTION: "Relevant History" (<h2>)
+      3. SECTION: "Mechanism of Injury" (<h2>) — ONLY if trauma/injury
+         - If mechanism_of_injury data is available, present it as a detailed clinical narrative.
+         - Include: mechanism type, height/surface/direction of impact, immediate symptoms post-injury.
+         - If not a trauma case, OMIT this entire section.
+
+      4. SECTION: "Pain Assessment" (<h2>)
+         - Present pain_location and pain_characteristics data.
+         - Use a <table> with: Parameter | Finding
+         - Include: anatomical site, laterality, depth, point tenderness, radiation, quality, pattern, severity at rest vs movement, aggravating/alleviating factors.
+
+      5. SECTION: "Functional Assessment" (<h2>)
+         - Present functional_limitations data.
+         - Use a <table> with: Function | Status
+         - Include all reported abilities: wrist rotation, grip, writing, door opening, lifting, finger movement, and any other limitations.
+
+      6. SECTION: "Physical Examination Findings" (<h2>)
+         - Present physical_exam_findings data if available.
+         - Include: swelling, bruising, deformity, skin condition, temperature, range of motion, tenderness points.
+         - If not reported, state "Formal examination not available via teleconsultation."
+
+      7. SECTION: "Neurovascular Assessment" (<h2>) — ONLY if limb injury
+         - Present neurovascular_assessment data if available.
+         - Include: sensation, finger/toe movement, capillary refill, pulse, color.
+         - If not assessed, state "Neurovascular status not formally assessed."
+         - OMIT this section if not a limb/extremity complaint.
+
+      8. SECTION: "Relevant History" (<h2>)
          - Extract and list any: age, gender, known medical conditions, current medications, allergies, family history, or lifestyle factors mentioned.
+         - Include previous_injuries, imaging_history, and tetanus_status if available.
          - If not provided, state "Not reported by patient."
 
-      4. SECTION: "Tabib AI Differential Analysis" (<h2>)
+      9. SECTION: "Tabib AI Differential Analysis" (<h2>)
          - Present the AI-generated differential diagnoses as a ranked list.
          - For each condition, include:
            - <strong>Condition name</strong> — probability %, urgency level, and a brief clinical rationale.
            - Matched symptoms as a comma-separated list.
          - Format as a <table> with columns: Rank, Condition, Probability, Urgency, Rationale.
 
-      5. SECTION: "Recommended Workup" (<h2>)
+      10. SECTION: "Recommended Workup" (<h2>)
          - List all recommendations from the AI assessment.
          - Include suggested labs, imaging, specialist referrals, or immediate interventions.
          - Use <ul> with clear action items.
 
-      6. SECTION: "Red Flags & Urgency" (<h2>)
+      11. SECTION: "Treatment Already Attempted" (<h2>)
+         - Summarize treatment_already_given if available.
+         - Include: ice, medications, splint/brace, and any improvement noted.
+         - If none, state "No treatment attempted prior to consultation."
+
+      12. SECTION: "Red Flags & Urgency" (<h2>)
          - State whether this case is marked as emergency or routine.
          - If emergency: list the specific emergency steps the patient was instructed to follow.
          - If routine: note the urgency level and any worsening signs to watch for.
 
-      7. SECTION: "Patient Instructions Given" (<h2>)
+      13. SECTION: "Patient Goals & Concerns" (<h2>)
+         - List patient_goals if available.
+         - Include any specific questions or concerns the patient expressed (return to work, exercise, pain management, etc.)
+         - If none stated, state "No specific concerns stated beyond symptom resolution."
+
+      14. SECTION: "Patient Instructions Given" (<h2>)
          - Summarize the plain-language advice Tabib gave the patient (self-care steps, OTC recommendations, follow-up timeline).
 
-      8. FOOTER:
+      15. FOOTER:
          - <p style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
              <strong>Disclaimer:</strong> This briefing was generated by Tabib, an AI-powered health assistant. It is not a substitute for professional medical judgment. All recommendations should be verified by a licensed physician before implementation. Tabib © ${new Date().getFullYear()} — All rights reserved.
            </p>

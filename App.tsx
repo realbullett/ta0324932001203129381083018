@@ -10,6 +10,7 @@ import { animate } from 'animejs';
 import { LandingCards } from './components/LandingCards';
 import { Sparkles, AlertOctagon, ArrowRight, FileText, Printer, Stethoscope, Zap, X, Mail, Copy, Check, ExternalLink, Heart, Image as ImageIcon, Pill, Camera, Calendar, Factory, AlertTriangle, Info, ShieldCheck, Clock, Database, Mic, ChevronRight, ChevronDown } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewMode>('landing');
@@ -520,6 +521,7 @@ const App: React.FC = () => {
     <div className="min-h-screen font-sans pb-20 selection:bg-brand-accent selection:text-white relative overflow-x-hidden">
       
       <Analytics />
+      <SpeedInsights />
 
       <Header onContactClick={() => setShowContactModal(true)} currentView={view} onViewChange={handleViewChange} />
 

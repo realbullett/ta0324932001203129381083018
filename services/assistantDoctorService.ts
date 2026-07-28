@@ -317,14 +317,16 @@ const MEDICATION_SCHEMA = {
             name: { type: Type.STRING },
             country_of_origin: { type: Type.STRING },
             country_of_distribution: { type: Type.STRING },
-          }
+          },
+          required: ["name", "country_of_origin", "country_of_distribution"],
         },
         dates: {
           type: Type.OBJECT,
           properties: {
             production_date: { type: Type.STRING, description: "Date extracted from image text if visible, otherwise state 'Not visible'" },
             expiry_date: { type: Type.STRING, description: "Date extracted from image text if visible, otherwise state 'Not visible'" },
-          }
+          },
+          required: ["production_date", "expiry_date"],
         },
         specifications: {
           type: Type.OBJECT,
@@ -332,18 +334,21 @@ const MEDICATION_SCHEMA = {
             type: { type: Type.STRING, description: "Tablet, Capsule, Syrup, Injection, etc." },
             dosage: { type: Type.STRING, description: "e.g., 500mg, 10ml" },
             composition: { type: Type.STRING, description: "Active chemical ingredients" },
-          }
+          },
+          required: ["type", "dosage", "composition"],
         },
         clinical_info: {
           type: Type.OBJECT,
           properties: {
-            uses: { type: Type.ARRAY, items: { type: Type.STRING } },
-            administration_guide: { type: Type.STRING, description: "How/When to take, with food/without food, etc." },
-            side_effects: { type: Type.ARRAY, items: { type: Type.STRING } },
-            warnings: { type: Type.STRING, description: "Major contraindications or box warnings" },
-          }
-        }
-      }
+            uses: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What this medication treats or is used for" },
+            administration_guide: { type: Type.STRING, description: "How/When to take, with food/without food, dosage instructions" },
+            side_effects: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Common and serious side effects" },
+            warnings: { type: Type.STRING, description: "Major contraindications, interactions, or box warnings" },
+          },
+          required: ["uses", "administration_guide", "side_effects", "warnings"],
+        },
+      },
+      required: ["name", "generic_name", "manufacturer", "dates", "specifications", "clinical_info"],
     },
     analysis_confidence: { type: Type.NUMBER, description: "Confidence in identification 0-100" },
     disclaimer: { type: Type.STRING },
@@ -497,7 +502,7 @@ export const analyzePatientSymptoms = async (symptoms: string, image?: string): 
   }
 };
 
-export const analyzeMedication = async (query: string, image?: string): Promise<MedicationResponse> => {
+export const analyzeMedication = async (query: string, images?: string[]): Promise<MedicationResponse> => {
   try {
     const modelId = 'gemini-3.5-flash-lite';
     
@@ -533,17 +538,19 @@ export const analyzeMedication = async (query: string, image?: string): Promise<
 
     const parts: any[] = [];
 
-    if (image) {
-      const matches = image.match(/^data:(.+);base64,(.+)$/);
-      if (matches) {
-        parts.push({ inlineData: { mimeType: matches[1], data: matches[2] } });
-      } else {
-        parts.push({ inlineData: { mimeType: 'image/png', data: image } });
+    if (images && images.length > 0) {
+      for (const image of images) {
+        const matches = image.match(/^data:(.+);base64,(.+)$/);
+        if (matches) {
+          parts.push({ inlineData: { mimeType: matches[1], data: matches[2] } });
+        } else {
+          parts.push({ inlineData: { mimeType: 'image/png', data: image } });
+        }
       }
     }
 
     parts.push({ 
-      text: `Analyze this medication. Input: "${query}". ${image ? '[IMAGE ATTACHED]' : ''} \n\nExtract all visible details (dates, manufacturer) and provide deep clinical info.` 
+      text: `Analyze this medication. Input: "${query}". ${images && images.length > 0 ? `[${images.length} IMAGE(S) ATTACHED]` : ''} \n\nYou MUST extract ALL of the following fields completely. Do NOT leave any field empty or null:\n- medication.name (brand name)\n- medication.generic_name\n- medication.manufacturer.name, country_of_origin, country_of_distribution\n- medication.dates.production_date, expiry_date (read from image or state "Not visible on packaging")\n- medication.specifications.type, dosage, composition\n- medication.clinical_info.uses (array of what this medication treats)\n- medication.clinical_info.administration_guide (how to take it)\n- medication.clinical_info.side_effects (array of side effects)\n- medication.clinical_info.warnings (contraindications)\n\nFor clinical_info fields, use your medical knowledge to populate them based on the identified medication. These fields are REQUIRED, not optional.` 
     });
 
     const response = await ai.models.generateContent({

@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<ViewMode>('landing');
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedImages, setSelectedMedImages] = useState<string[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>({
     results: null,
     loading: false,
@@ -196,7 +197,11 @@ const App: React.FC = () => {
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
         const dataUrl = canvas.toDataURL('image/png');
-        setSelectedImage(dataUrl);
+        if (view === 'medication') {
+          setSelectedMedImages(prev => prev.length < 2 ? [...prev, dataUrl] : prev);
+        } else {
+          setSelectedImage(dataUrl);
+        }
         stopCamera();
       }
     }
@@ -363,20 +368,20 @@ const App: React.FC = () => {
   // --- Medication Logic ---
   const handleAnalyzeMedication = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() && !selectedImage) return;
+    if (!input.trim() && selectedMedImages.length === 0) return;
 
     setMedicationState({ ...medicationState, loading: true, error: null });
 
     try {
       const promptText = input.trim() || "Analyze this medication image.";
-      const data = await analyzeMedication(promptText, selectedImage || undefined);
+      const data = await analyzeMedication(promptText, selectedMedImages.length > 0 ? selectedMedImages : undefined);
       setMedicationState({
         results: data,
         loading: false,
         error: null,
       });
       setInput('');
-      setSelectedImage(null);
+      setSelectedMedImages([]);
 
       setTimeout(() => {
         medResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -394,7 +399,7 @@ const App: React.FC = () => {
   const handleClearMedication = () => {
     stopSpeaking();
     setInput('');
-    setSelectedImage(null);
+    setSelectedMedImages([]);
     setMedicationState({ results: null, loading: false, error: null });
   };
 
@@ -425,14 +430,24 @@ const App: React.FC = () => {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (!files) return;
+
+    const isMedView = view === 'medication';
+    const remaining = isMedView ? 2 - selectedMedImages.length : 1;
+
+    Array.from(files).slice(0, Math.max(remaining, 0)).forEach((file: File) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
+        if (isMedView) {
+          setSelectedMedImages(prev => [...prev, reader.result as string]);
+        } else {
+          setSelectedImage(reader.result as string);
+        }
       };
       reader.readAsDataURL(file);
-    }
+    });
+
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -447,7 +462,11 @@ const App: React.FC = () => {
         if (blob) {
           const reader = new FileReader();
           reader.onload = (event) => {
-            setSelectedImage(event.target?.result as string);
+            if (view === 'medication') {
+              setSelectedMedImages(prev => prev.length < 2 ? [...prev, event.target?.result as string] : prev);
+            } else {
+              setSelectedImage(event.target?.result as string);
+            }
           };
           reader.readAsDataURL(blob);
         }
@@ -1250,24 +1269,35 @@ const App: React.FC = () => {
                         disabled={isLoadingMedication}
                       />
 
-                      {selectedImage && (
-                        <div className="mt-5 flex items-start gap-4 rounded-[26px] border border-white/10 bg-white/[0.03] p-4">
-                          <img
-                            src={selectedImage}
-                            alt="Reference"
-                            className="h-24 w-24 rounded-2xl border border-white/10 object-cover"
-                          />
-                          <div className="flex-1">
-                            <div className="text-[11px] font-bold uppercase tracking-[0.35em] text-zinc-500">Attached Reference</div>
-                            <p className="mt-2 text-sm leading-relaxed text-zinc-300">This image will be included in the next assessment pass.</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedImage(null)}
-                            className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
-                          >
-                            <X size={14} />
-                          </button>
+                      {selectedMedImages.length > 0 && (
+                        <div className="mt-5 space-y-3">
+                          {selectedMedImages.map((img, idx) => (
+                            <div key={idx} className="flex items-start gap-4 rounded-[26px] border border-white/10 bg-white/[0.03] p-4">
+                              <img
+                                src={img}
+                                alt={`Reference ${idx + 1}`}
+                                className="h-24 w-24 rounded-2xl border border-white/10 object-cover"
+                              />
+                              <div className="flex-1">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.35em] text-zinc-500">
+                                  Image {idx + 1} of {selectedMedImages.length}
+                                </div>
+                                <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+                                  {idx === 0 ? 'Front of packaging' : 'Back of packaging'}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedMedImages(prev => prev.filter((_, i) => i !== idx))}
+                                className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                          {selectedMedImages.length < 2 && (
+                            <p className="text-[11px] text-zinc-600 uppercase tracking-wider">You can upload 1 more image</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1293,6 +1323,7 @@ const App: React.FC = () => {
                             ref={fileInputRef}
                             onChange={handleImageUpload}
                             accept="image/*"
+                            multiple
                             className="hidden"
                           />
                           <button
@@ -1314,7 +1345,7 @@ const App: React.FC = () => {
                             <Camera size={14} />
                             Capture
                           </button>
-                          {(input || selectedImage) && (
+                          {(input || selectedMedImages.length > 0) && (
                             <button
                               type="button"
                               onClick={handleClearMedication}
@@ -1330,10 +1361,10 @@ const App: React.FC = () => {
 
                     <button
                       type="submit"
-                      disabled={isLoadingMedication || (!input.trim() && !selectedImage)}
+                      disabled={isLoadingMedication || (!input.trim() && selectedMedImages.length === 0)}
                       className={`
                         mt-6 flex w-full items-center justify-center gap-3 rounded-[26px] px-6 py-5 text-sm font-bold uppercase tracking-[0.35em] transition-all duration-300
-                        ${isLoadingMedication || (!input.trim() && !selectedImage)
+                        ${isLoadingMedication || (!input.trim() && selectedMedImages.length === 0)
                           ? 'cursor-not-allowed border border-white/10 bg-white/[0.04] text-zinc-600'
                           : 'border border-white/20 bg-white text-black shadow-[0_18px_40px_rgba(255,255,255,0.12)] hover:scale-[1.01]'
                         }

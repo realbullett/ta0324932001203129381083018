@@ -115,7 +115,8 @@ const App: React.FC = () => {
   };
 
   const saveDiagnosisToSupabase = async (messages: { role: string; content: string }[], results: any, isEmergency: boolean): Promise<string | null> => {
-    if (!user || !results) return null;
+    if (!user) { console.warn('[Tabib] Save skipped: user is null'); return null; }
+    if (!results) { console.warn('[Tabib] Save skipped: results is null'); return null; }
     try {
       const { data, error } = await supabase.from('diagnoses').insert({
         user_email: user.email,
@@ -127,17 +128,19 @@ const App: React.FC = () => {
         disclaimer: results.disclaimer || '',
         is_emergency: isEmergency,
       }).select('id').single();
-      if (error) return null;
+      if (error) { console.error('[Tabib] Supabase insert error:', error); return null; }
       return data?.id || null;
-    } catch {
+    } catch (e) {
+      console.error('[Tabib] Save exception:', e);
       return null;
     }
   };
 
   const saveMedicationToSupabase = async (prompt: string, results: any) => {
-    if (!user || !results) return;
+    if (!user) { console.warn('[Tabib] Med save skipped: user is null'); return; }
+    if (!results) { console.warn('[Tabib] Med save skipped: results is null'); return; }
     try {
-      await supabase.from('diagnoses').insert({
+      const { error } = await supabase.from('diagnoses').insert({
         user_email: user.email,
         user_name: user.name,
         type: 'medication',
@@ -148,8 +151,9 @@ const App: React.FC = () => {
         is_emergency: false,
         medication_data: JSON.stringify(results),
       });
-    } catch {
-      // silent fail
+      if (error) console.error('[Tabib] Med supabase insert error:', error);
+    } catch (e) {
+      console.error('[Tabib] Med save exception:', e);
     }
   };
 
@@ -1683,6 +1687,25 @@ const App: React.FC = () => {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {view === 'diagnosis' && diagnosisState.is_complete && !diagnosisState.is_emergency && !diagnosisState.results && !diagnosisState.error && (
+          <div ref={resultsRef} className="max-w-4xl mx-auto mb-12 space-y-6">
+            <div className="glass-panel p-8 rounded-3xl border border-white/10 text-center space-y-4">
+              <div className="inline-flex p-4 rounded-full bg-white/5 text-gray-400 border border-white/10">
+                <FileText size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-white">Diagnosis Complete</h3>
+              <p className="text-gray-400 text-sm max-w-md mx-auto">Your consultation has been recorded. The AI response is shown below.</p>
+            </div>
+            <div className="space-y-3">
+              {diagnosisState.messages.filter(m => m.role === 'assistant').map((m, i) => (
+                <div key={i} className="glass-panel rounded-2xl p-5 border border-white/10">
+                  <p className="text-sm text-gray-300 leading-relaxed">{m.content}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

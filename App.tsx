@@ -12,7 +12,8 @@ import { LandingSteps } from './components/LandingSteps';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Dashboard } from './components/Dashboard';
 import { User } from './types';
-import { getStoredUser, initGoogleAuth, promptGoogleSignIn, googleSignOut } from './services/authService';
+import { onAuthStateChange, signOut } from './services/authService';
+import { AuthPage } from './components/AuthPage';
 import { supabase } from './services/supabase';
 import { Sparkles, AlertOctagon, ArrowRight, FileText, Printer, Stethoscope, Zap, X, Mail, Copy, Check, ExternalLink, Heart, Image as ImageIcon, Pill, Camera, Calendar, Factory, AlertTriangle, Info, ShieldCheck, Clock, Database, Mic, ChevronRight, ChevronDown } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
@@ -37,7 +38,7 @@ const getInitialView = (): ViewMode => {
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewMode>(getInitialView);
-  const [user, setUser] = useState<User | null>(getStoredUser());
+  const [user, setUser] = useState<User | null>(null);
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedMedImages, setSelectedMedImages] = useState<string[]>([]);
@@ -97,7 +98,8 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    initGoogleAuth((u) => setUser(u));
+    const unsub = onAuthStateChange((u) => setUser(u));
+    return unsub;
   }, []);
 
   const requiresAuth = (viewMode: ViewMode): boolean => {
@@ -251,7 +253,7 @@ const App: React.FC = () => {
 
   const handleViewChange = (newView: ViewMode) => {
     if (requiresAuth(newView)) {
-      promptGoogleSignIn();
+      window.open('/auth', '_blank');
       return;
     }
     if (newView === 'diagnosis' || newView === 'medication') {
@@ -652,14 +654,18 @@ const App: React.FC = () => {
   // visual mode derived from state
   const symptom_visual_mode = isLoadingDiagnosis ? 'thinking' : input.trim() ? 'typing' : 'idle';
 
+  if (window.location.pathname === '/auth') {
+    return <AuthPage />;
+  }
+
   if (window.location.pathname === '/dashboard') {
     if (!user) {
       return (
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
             <p className="text-zinc-400 text-sm mb-4">Please sign in to view your dashboard.</p>
-            <button onClick={() => promptGoogleSignIn()} className="text-sm text-white underline">
-              Sign in with Google
+            <button onClick={() => window.open('/auth', '_blank')} className="text-sm text-white underline">
+              Sign In
             </button>
           </div>
         </div>
@@ -678,8 +684,8 @@ const App: React.FC = () => {
         currentView={view}
         onViewChange={handleViewChange}
         user={user}
-        onSignIn={() => promptGoogleSignIn()}
-        onSignOut={() => googleSignOut(() => setUser(null))}
+        onSignIn={() => window.open('/auth', '_blank')}
+        onSignOut={() => { signOut(); setUser(null); }}
       />
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 pt-44 sm:pt-36 md:pt-40 lg:px-8">
@@ -718,7 +724,7 @@ const App: React.FC = () => {
 
               <div className="inline-flex items-center gap-3">
                 <button
-                  onClick={() => user ? handleViewChange('home') : requiresAuth('diagnosis') ? promptGoogleSignIn() : handleViewChange('home')}
+                  onClick={() => user ? handleViewChange('home') : requiresAuth('diagnosis') ? window.open('/auth', '_blank') : handleViewChange('home')}
                   className="inline-flex items-center gap-3 rounded-xl bg-white text-black px-8 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-zinc-200 active:scale-[0.97]"
                 >
                   {!user && requiresAuth('diagnosis') ? 'Sign in to Continue' : 'Try Tabib'}

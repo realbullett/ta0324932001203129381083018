@@ -76,6 +76,7 @@ export interface MedicationState {
 export type ViewMode = 'landing' | 'home' | 'diagnosis' | 'medication' | 'about' | 'privacy';
 
 export interface User {
+  id: string;
   name: string;
   email: string;
   picture: string;

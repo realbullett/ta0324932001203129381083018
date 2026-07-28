@@ -73,4 +73,4 @@ export interface MedicationState {
   error: string | null;
 }
 
-export type ViewMode = 'landing' | 'home' | 'diagnosis' | 'medication' | 'about';
+export type ViewMode = 'landing' | 'home' | 'diagnosis' | 'medication' | 'about' | 'privacy';

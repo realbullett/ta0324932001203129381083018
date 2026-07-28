@@ -59,6 +59,18 @@ export const Header: React.FC<HeaderProps> = ({ onContactClick, currentView, onV
               About Us
             </button>
             <button
+              onClick={() => onViewChange('privacy')}
+              className="header-privacy-btn"
+              style={{
+                display: 'none', alignItems: 'center', gap: '8px', borderRadius: '9999px', padding: '8px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
+                border: currentView === 'privacy' ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: currentView === 'privacy' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                color: currentView === 'privacy' ? 'white' : '#9ca3af',
+              }}
+            >
+              Privacy
+            </button>
+            <button
               onClick={onContactClick}
               className="header-contact-btn"
               style={{
@@ -108,6 +120,16 @@ export const Header: React.FC<HeaderProps> = ({ onContactClick, currentView, onV
           >
             About
           </button>
+          <button
+            onClick={() => onViewChange('privacy')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '9999px', padding: '6px 12px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer',
+              backgroundColor: currentView === 'privacy' ? 'white' : 'transparent',
+              color: currentView === 'privacy' ? 'black' : '#9ca3af',
+            }}
+          >
+            Privacy
+          </button>
         </div>
       </div>
 
@@ -115,12 +137,14 @@ export const Header: React.FC<HeaderProps> = ({ onContactClick, currentView, onV
         @media (min-width: 768px) {
           .header-desktop-tabs { display: flex !important; }
           .header-about-btn { display: flex !important; }
+          .header-privacy-btn { display: flex !important; }
           .header-contact-btn { display: flex !important; }
           .header-mobile-nav { display: none !important; }
           .header-pill { height: 96px !important; padding-left: 32px !important; padding-right: 32px !important; }
         }
         @media (min-width: 640px) {
           .header-about-btn { display: flex !important; }
+          .header-privacy-btn { display: flex !important; }
           .header-contact-btn { display: flex !important; }
         }
         .header-bar { pointer-events: none; }

@@ -8,6 +8,8 @@ import { speakWithElevenLabs, stopSpeaking } from './services/elevenLabsService'
 import { DiagnosisState, MedicationState, ViewMode } from './types';
 import { animate } from 'animejs';
 import { LandingCards } from './components/LandingCards';
+import { LandingSteps } from './components/LandingSteps';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Sparkles, AlertOctagon, ArrowRight, FileText, Printer, Stethoscope, Zap, X, Mail, Copy, Check, ExternalLink, Heart, Image as ImageIcon, Pill, Camera, Calendar, Factory, AlertTriangle, Info, ShieldCheck, Clock, Database, Mic, ChevronRight, ChevronDown } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 
@@ -589,6 +591,11 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* How It Works Steps */}
+            <div className="relative z-10 mt-6 md:mt-10 px-4">
+              <LandingSteps />
+            </div>
+
             {/* Purple glow bottom ending */}
             <div className="bottom-glow-circle" />
           </section>
@@ -1066,6 +1073,8 @@ const App: React.FC = () => {
           </section>
         )}
 
+        {view === 'privacy' && <PrivacyPolicy />}
+
         {view === 'diagnosis' && (
           <div className="mx-auto mb-10 flex max-w-4xl justify-end">
             <button
@@ -1508,7 +1517,7 @@ const App: React.FC = () => {
                <div className="max-w-2xl mx-auto bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center">
                  <p className="text-red-400">{medicationState.error}</p>
                </div>
-             ) : medicationState.results && (
+              ) : medicationState.results && medicationState.results.medication && (
                <>
                   {/* Monograph Header */}
                   <div className="glass-panel rounded-3xl p-8 relative overflow-hidden border-l-4 border-l-brand-accent group">
@@ -1540,10 +1549,10 @@ const App: React.FC = () => {
                               <Factory size={14} />
                               <span className="text-xs font-bold uppercase tracking-wider">Manufacturer</span>
                            </div>
-                           <p className="text-white font-medium">{medicationState.results.medication.manufacturer.name}</p>
-                           <div className="flex gap-2 mt-2 text-xs text-gray-500">
-                              <span>Origin: {medicationState.results.medication.manufacturer.country_of_origin}</span>
-                           </div>
+                           <p className="text-white font-medium">{medicationState.results.medication.manufacturer?.name || 'N/A'}</p>
+                            <div className="flex gap-2 mt-2 text-xs text-gray-500">
+                               <span>Origin: {medicationState.results.medication.manufacturer?.country_of_origin || 'N/A'}</span>
+                            </div>
                         </div>
 
                         {/* Dates */}
@@ -1553,16 +1562,16 @@ const App: React.FC = () => {
                               <span className="text-xs font-bold uppercase tracking-wider">Dates (From Image)</span>
                            </div>
                            <div className="space-y-1">
-                             <div className="flex justify-between text-sm">
-                               <span className="text-gray-500">Mfg Date:</span>
-                               <span className="text-white">{medicationState.results.medication.dates.production_date}</span>
-                             </div>
-                             <div className="flex justify-between text-sm">
-                               <span className="text-gray-500">Exp Date:</span>
-                               <span className={`font-bold ${medicationState.results.medication.dates.expiry_date.includes('Not') ? 'text-gray-400' : 'text-brand-accent'}`}>
-                                 {medicationState.results.medication.dates.expiry_date}
-                               </span>
-                             </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">Mfg Date:</span>
+                                <span className="text-white">{medicationState.results.medication.dates?.production_date || 'N/A'}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">Exp Date:</span>
+                                <span className={`font-bold ${(medicationState.results.medication.dates?.expiry_date || '').includes('Not') ? 'text-gray-400' : 'text-brand-accent'}`}>
+                                  {medicationState.results.medication.dates?.expiry_date || 'N/A'}
+                                </span>
+                              </div>
                            </div>
                         </div>
                         
@@ -1572,9 +1581,9 @@ const App: React.FC = () => {
                               <Info size={14} />
                               <span className="text-xs font-bold uppercase tracking-wider">Specifications</span>
                            </div>
-                           <p className="text-white text-sm"><span className="text-gray-500">Type:</span> {medicationState.results.medication.specifications.type}</p>
-                           <p className="text-white text-sm"><span className="text-gray-500">Dosage:</span> {medicationState.results.medication.specifications.dosage}</p>
-                           <p className="text-white text-sm truncate" title={medicationState.results.medication.specifications.composition}><span className="text-gray-500">Active:</span> {medicationState.results.medication.specifications.composition}</p>
+                            <p className="text-white text-sm"><span className="text-gray-500">Type:</span> {medicationState.results.medication.specifications?.type || 'N/A'}</p>
+                            <p className="text-white text-sm"><span className="text-gray-500">Dosage:</span> {medicationState.results.medication.specifications?.dosage || 'N/A'}</p>
+                            <p className="text-white text-sm truncate" title={medicationState.results.medication.specifications?.composition}><span className="text-gray-500">Active:</span> {medicationState.results.medication.specifications?.composition || 'N/A'}</p>
                         </div>
                       </div>
                     </div>
@@ -1588,7 +1597,7 @@ const App: React.FC = () => {
                           <Check size={18} className="text-brand-primary" /> Official Indications
                         </h3>
                         <ul className="space-y-2">
-                          {medicationState.results.medication.clinical_info.uses.map((use, i) => (
+                          {(medicationState.results.medication.clinical_info?.uses || []).map((use, i) => (
                             <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-1.5 shrink-0" />
                               {use}
@@ -1601,7 +1610,7 @@ const App: React.FC = () => {
                      <div className="glass-panel p-6 rounded-2xl hover:bg-white/5 transition-colors">
                         <h3 className="text-lg font-bold text-white mb-4">Administration Guide</h3>
                         <p className="text-gray-300 text-sm leading-relaxed">
-                          {medicationState.results.medication.clinical_info.administration_guide}
+                          {medicationState.results.medication.clinical_info?.administration_guide || 'N/A'}
                         </p>
                      </div>
 
@@ -1611,7 +1620,7 @@ const App: React.FC = () => {
                           <AlertTriangle size={18} className="text-red-400" /> Critical Warnings
                         </h3>
                          <p className="text-gray-300 text-sm leading-relaxed">
-                          {medicationState.results.medication.clinical_info.warnings}
+                          {medicationState.results.medication.clinical_info?.warnings || 'N/A'}
                         </p>
                      </div>
 
@@ -1619,7 +1628,7 @@ const App: React.FC = () => {
                      <div className="glass-panel p-6 rounded-2xl hover:bg-white/5 transition-colors">
                         <h3 className="text-lg font-bold text-white mb-4">Potential Side Effects</h3>
                         <div className="flex flex-wrap gap-2">
-                           {medicationState.results.medication.clinical_info.side_effects.map((effect, i) => (
+                           {(medicationState.results.medication.clinical_info?.side_effects || []).map((effect, i) => (
                              <span key={i} className="text-xs bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/10">
                                {effect}
                              </span>

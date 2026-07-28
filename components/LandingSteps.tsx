@@ -1,32 +1,22 @@
 import React, { useRef, useEffect } from 'react';
 import { animate, stagger } from 'animejs';
-import { MessageSquare, Search, Pill, FileText } from 'lucide-react';
-
 const steps = [
   {
-    num: '01',
-    icon: MessageSquare,
     title: 'Describe Your Symptoms',
-    desc: 'Tell Tabib what you\'re feeling in your own language — type or use your voice.',
+    desc: 'Tell Tabib what you\'re feeling in your own language, whether you type or use your voice.',
     video: '/step1.mp4',
   },
   {
-    num: '02',
-    icon: Search,
     title: 'Get Your Analysis',
     desc: 'Receive possible conditions, urgency levels, and personalized health guidance.',
     video: '/step2.mp4',
   },
   {
-    num: '03',
-    icon: Pill,
     title: 'Verify Medications',
     desc: 'Snap a photo of any medication to get expiry dates, dosage, and warnings.',
     video: '/step3.mp4',
   },
   {
-    num: '04',
-    icon: FileText,
     title: 'Take a Report to Your Doctor',
     desc: 'Generate a clinical report your doctor can read in minutes, not hours.',
     video: '/step4.mp4',
@@ -66,8 +56,13 @@ export function LandingSteps() {
     return () => observer.disconnect();
   }, []);
 
-  const videoBox = (src: string) => (
-    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.03]">
+  const videoBox = (src: string, isEven: boolean) => (
+    <div
+      className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.03]"
+      style={{
+        transform: isEven ? 'perspective(800px) rotateY(6deg)' : 'perspective(800px) rotateY(-6deg)',
+      }}
+    >
       <video
         src={src}
         autoPlay
@@ -79,20 +74,21 @@ export function LandingSteps() {
     </div>
   );
 
-  const textBox = (step: typeof steps[number]) => {
-    const Icon = step.icon;
+  const textBox = (step: typeof steps[number], idx: number) => {
     return (
-      <div className="flex flex-col justify-center py-4 md:py-0">
-        <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-purple-400 mb-3">
-          Step {step.num}
+      <div className="flex items-start gap-4 md:gap-6 py-4 md:py-0">
+        <span
+          className="step-number text-[64px] md:text-[88px] font-black leading-none select-none shrink-0 tabular-nums"
+          style={{ animationDelay: `${idx * -1}s` }}
+        >
+          {idx + 1}
         </span>
-        <div className="flex items-center gap-3 mb-3">
-          <Icon size={18} className="text-purple-400 shrink-0" />
-          <h3 className="text-lg md:text-xl font-bold text-white">{step.title}</h3>
+        <div className="flex flex-col justify-center pt-2">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-2">{step.title}</h3>
+          <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-md">
+            {step.desc}
+          </p>
         </div>
-        <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-md">
-          {step.desc}
-        </p>
       </div>
     );
   };
@@ -122,19 +118,36 @@ export function LandingSteps() {
             >
               {isEven ? (
                 <>
-                  {videoBox(step.video)}
-                  {textBox(step)}
+                  {videoBox(step.video, isEven)}
+                  {textBox(step, i)}
                 </>
               ) : (
                 <>
-                  {textBox(step)}
-                  {videoBox(step.video)}
+                  {textBox(step, i)}
+                  {videoBox(step.video, isEven)}
                 </>
               )}
             </div>
           );
         })}
       </div>
+
+      <style>{`
+        @keyframes neon-flow {
+          0%   { background-position: 0% 50%; filter: drop-shadow(0 0 12px rgba(168,85,247,0.5)); }
+          50%  { background-position: 100% 50%; filter: drop-shadow(0 0 20px rgba(255,255,255,0.4)); }
+          100% { background-position: 0% 50%; filter: drop-shadow(0 0 12px rgba(168,85,247,0.5)); }
+        }
+        .step-number {
+          background: linear-gradient(90deg, #7c3aed, #a855f7, #d8b4fe, #a855f7, #7c3aed);
+          background-size: 200% 200%;
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          animation: neon-flow 3s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

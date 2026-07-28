@@ -10,11 +10,34 @@ import { animate } from 'animejs';
 import { LandingCards } from './components/LandingCards';
 import { LandingSteps } from './components/LandingSteps';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { Dashboard } from './components/Dashboard';
+import { User } from './types';
+import { getStoredUser, initGoogleAuth, promptGoogleSignIn, googleSignOut } from './services/authService';
+import { supabase } from './services/supabase';
 import { Sparkles, AlertOctagon, ArrowRight, FileText, Printer, Stethoscope, Zap, X, Mail, Copy, Check, ExternalLink, Heart, Image as ImageIcon, Pill, Camera, Calendar, Factory, AlertTriangle, Info, ShieldCheck, Clock, Database, Mic, ChevronRight, ChevronDown } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 
+const VIEW_PATHS: Record<ViewMode, string> = {
+  landing: '/',
+  home: '/home',
+  diagnosis: '/diagnosis',
+  medication: '/medication',
+  about: '/about',
+  privacy: '/privacy',
+};
+
+const PATH_VIEWS: Record<string, ViewMode> = Object.fromEntries(
+  Object.entries(VIEW_PATHS).map(([view, path]) => [path, view as ViewMode])
+);
+
+const getInitialView = (): ViewMode => {
+  const path = window.location.pathname;
+  return PATH_VIEWS[path] || 'landing';
+};
+
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewMode>('landing');
+  const [view, setView] = useState<ViewMode>(getInitialView);
+  const [user, setUser] = useState<User | null>(getStoredUser());
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedMedImages, setSelectedMedImages] = useState<string[]>([]);
@@ -50,6 +73,7 @@ const App: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportHtml, setReportHtml] = useState('');
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [currentDiagnosisId, setCurrentDiagnosisId] = useState<string | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
@@ -68,7 +92,66 @@ const App: React.FC = () => {
   const [diagnosticConfidence, setDiagnosticConfidence] = useState<number>(0);
   const [redFlags, setRedFlags] = useState<string[]>([]);
   const [closingSummary, setClosingSummary] = useState<string>('');
+  const [hasUsedFreeTrial, setHasUsedFreeTrial] = useState(() => {
+    return localStorage.getItem('tabib_free_trial_used') === 'true';
+  });
 
+  useEffect(() => {
+    initGoogleAuth((u) => setUser(u));
+  }, []);
+
+  const requiresAuth = (viewMode: ViewMode): boolean => {
+    if (viewMode === 'diagnosis' || viewMode === 'medication') {
+      return hasUsedFreeTrial && !user;
+    }
+    return false;
+  };
+
+  const markFreeTrialUsed = () => {
+    if (!user && !hasUsedFreeTrial) {
+      localStorage.setItem('tabib_free_trial_used', 'true');
+      setHasUsedFreeTrial(true);
+    }
+  };
+
+  const saveDiagnosisToSupabase = async (messages: { role: string; content: string }[], results: any, isEmergency: boolean): Promise<string | null> => {
+    if (!user || !results) return null;
+    try {
+      const { data, error } = await supabase.from('diagnoses').insert({
+        user_email: user.email,
+        user_name: user.name,
+        type: 'diagnosis',
+        conditions: JSON.stringify(results.conditions || []),
+        messages: JSON.stringify(messages),
+        general_advice: results.general_advice || '',
+        disclaimer: results.disclaimer || '',
+        is_emergency: isEmergency,
+      }).select('id').single();
+      if (error) return null;
+      return data?.id || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveMedicationToSupabase = async (prompt: string, results: any) => {
+    if (!user || !results) return;
+    try {
+      await supabase.from('diagnoses').insert({
+        user_email: user.email,
+        user_name: user.name,
+        type: 'medication',
+        conditions: JSON.stringify([{ name: results.medication?.name || prompt, urgency: 'Low', probability: results.analysis_confidence || 0, description: results.medication?.generic_name || '', recommendations: results.medication?.clinical_info?.uses || [] }]),
+        messages: JSON.stringify([{ role: 'user', content: prompt }, { role: 'assistant', content: `Analyzed ${results.medication?.name || 'medication'} with ${results.analysis_confidence || 0}% confidence.` }]),
+        general_advice: results.medication?.clinical_info?.warnings || '',
+        disclaimer: results.disclaimer || '',
+        is_emergency: false,
+        medication_data: JSON.stringify(results),
+      });
+    } catch {
+      // silent fail
+    }
+  };
 
   const speakText = (text: string) => {
     const cleanText = text.replace(/[*#_`]/g, '');
@@ -128,6 +211,16 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const onPopState = () => {
+      const path = window.location.pathname;
+      const newView = PATH_VIEWS[path] || 'landing';
+      setView(newView);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
     if (!notebookContainerRef.current) return;
     const items = notebookContainerRef.current.querySelectorAll('.notebook-entry');
     if (items.length === 0) return;
@@ -153,12 +246,20 @@ const App: React.FC = () => {
   };
 
   const handleViewChange = (newView: ViewMode) => {
+    if (requiresAuth(newView)) {
+      promptGoogleSignIn();
+      return;
+    }
+    if (newView === 'diagnosis' || newView === 'medication') {
+      markFreeTrialUsed();
+    }
     stopSpeaking();
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
     }
     setView(newView);
+    window.history.pushState({}, '', VIEW_PATHS[newView] || '/');
     setInput('');
     setSelectedImage(null);
     setQuickReplies([]);
@@ -304,9 +405,15 @@ const App: React.FC = () => {
 
       if (data.is_complete && !data.is_emergency) {
         setShowReportPrompt(true);
+        const id = await saveDiagnosisToSupabase([...newMessages, assistantMessage], data.diagnosis, false);
+        if (id) setCurrentDiagnosisId(id);
       }
 
       if (data.is_complete || data.is_emergency) {
+        if (data.is_emergency) {
+          const id = await saveDiagnosisToSupabase([...newMessages, assistantMessage], { conditions: [{ name: 'Emergency', urgency: 'critical', probability: 100, description: data.response, recommendations: data.emergency_steps || [] }], general_advice: '', disclaimer: '' }, true);
+          if (id) setCurrentDiagnosisId(id);
+        }
         setView('diagnosis');
       }
       
@@ -380,6 +487,7 @@ const App: React.FC = () => {
         loading: false,
         error: null,
       });
+      saveMedicationToSupabase(promptText, data);
       setInput('');
       setSelectedMedImages([]);
 
@@ -489,6 +597,9 @@ const App: React.FC = () => {
           .join('\n');
         const html = await generateClinicalReport(diagnosisState.results, promptText);
         setReportHtml(html);
+        if (currentDiagnosisId) {
+          await supabase.from('diagnoses').update({ report_html: html }).eq('id', currentDiagnosisId);
+        }
       } catch (e) {
         setReportHtml('<p>Error loading report.</p>');
       } finally {
@@ -537,12 +648,35 @@ const App: React.FC = () => {
   // visual mode derived from state
   const symptom_visual_mode = isLoadingDiagnosis ? 'thinking' : input.trim() ? 'typing' : 'idle';
 
+  if (window.location.pathname === '/dashboard') {
+    if (!user) {
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-zinc-400 text-sm mb-4">Please sign in to view your dashboard.</p>
+            <button onClick={() => promptGoogleSignIn()} className="text-sm text-white underline">
+              Sign in with Google
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return <Dashboard user={user} />;
+  }
+
   return (
     <div className="min-h-screen font-sans pb-20 selection:bg-brand-accent selection:text-white relative overflow-x-hidden">
       
       <Analytics />
 
-      <Header onContactClick={() => setShowContactModal(true)} currentView={view} onViewChange={handleViewChange} />
+      <Header
+        onContactClick={() => setShowContactModal(true)}
+        currentView={view}
+        onViewChange={handleViewChange}
+        user={user}
+        onSignIn={() => promptGoogleSignIn()}
+        onSignOut={() => googleSignOut(() => setUser(null))}
+      />
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 pt-44 sm:pt-36 md:pt-40 lg:px-8">
         
@@ -578,13 +712,24 @@ const App: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                onClick={() => handleViewChange('home')}
-                className="inline-flex items-center gap-3 rounded-xl bg-white text-black px-8 py-4 md:px-10 md:py-5 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-zinc-200 active:scale-[0.97]"
-              >
-                Try Tabib
-                <ArrowRight size={16} />
-              </button>
+              <div className="inline-flex items-center gap-3">
+                <button
+                  onClick={() => user ? handleViewChange('home') : requiresAuth('diagnosis') ? promptGoogleSignIn() : handleViewChange('home')}
+                  className="inline-flex items-center gap-3 rounded-xl bg-white text-black px-8 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-zinc-200 active:scale-[0.97]"
+                >
+                  {!user && requiresAuth('diagnosis') ? 'Sign in to Continue' : 'Try Tabib'}
+                  <ArrowRight size={16} />
+                </button>
+
+                {user && (
+                  <button
+                    onClick={() => window.open('/dashboard', '_blank')}
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] text-white/60 px-8 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-white/[0.06] hover:text-white/80 hover:border-white/20 active:scale-[0.97]"
+                  >
+                    My History
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Interactive Cards */}
@@ -991,7 +1136,7 @@ const App: React.FC = () => {
                   Healthcare shouldn't start and end at the doctor's office. Millions of people every day deal with symptoms they don't understand, medications they can't verify, and conversations with doctors that feel rushed because there isn't enough time.
                 </p>
                 <p className="text-gray-300 leading-relaxed">
-                  Tabib was built to change that. It gives you a head start — helping you understand what's going on with your body <strong className="text-white">in your own language</strong>, so you can walk into your doctor's office informed, prepared, and with a report already in hand.
+                  Tabib was built to change that. It gives you a head start, helping you understand what's going on with your body <strong className="text-white">in your own language</strong>, so you can walk into your doctor's office informed, prepared, and with a report already in hand.
                 </p>
               </div>
 
@@ -1026,7 +1171,7 @@ const App: React.FC = () => {
                     <div>
                       <h3 className="text-white font-semibold mb-1">Small, Curable Diseases</h3>
                       <p className="text-gray-400 text-sm leading-relaxed">
-                        Common colds, infections, mild allergies, digestive issues — the everyday problems that don't need a long hospital visit. Tabib helps you identify them quickly and guides you on what to do next.
+                        Common colds, infections, mild allergies, digestive issues. The everyday problems that don't need a long hospital visit. Tabib helps you identify them quickly and guides you on what to do next.
                       </p>
                     </div>
                   </div>
@@ -1037,7 +1182,7 @@ const App: React.FC = () => {
                     <div>
                       <h3 className="text-white font-semibold mb-1">Early Detection of Serious Conditions</h3>
                       <p className="text-gray-400 text-sm leading-relaxed">
-                        Some symptoms can be early signals of something bigger. Tabib helps you catch those red flags early — so you can get the right care before it's too late.
+                        Some symptoms can be early signals of something bigger. Tabib helps you catch those red flags early, so you can get the right care before it's too late.
                       </p>
                     </div>
                   </div>
@@ -1048,7 +1193,7 @@ const App: React.FC = () => {
                     <div>
                       <h3 className="text-white font-semibold mb-1">Bridging Patients and Doctors</h3>
                       <p className="text-gray-400 text-sm leading-relaxed">
-                        Tabib generates clinical reports you can bring to your doctor — cutting down the 30-minute conversation into a clear, structured document. Doctors get the facts, patients get more time for treatment.
+                        Tabib generates clinical reports you can bring to your doctor, cutting down the 30-minute conversation into a clear, structured document. Doctors get the facts, patients get more time for treatment.
                       </p>
                     </div>
                   </div>
@@ -1058,7 +1203,7 @@ const App: React.FC = () => {
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-10">
                 <h2 className="text-lg md:text-2xl font-bold text-white mb-4">Your Language, Your Health</h2>
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  You shouldn't need to speak English to understand your own body. Tabib lets you describe symptoms, read diagnoses, and learn about medications — all in the language you're most comfortable with.
+                  You shouldn't need to speak English to understand your own body. Tabib lets you describe symptoms, read diagnoses, and learn about medications, all in the language you're most comfortable with.
                 </p>
                 <p className="text-gray-300 leading-relaxed">
                   Because health information shouldn't have a language barrier.
@@ -1077,7 +1222,7 @@ const App: React.FC = () => {
                   <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-5">
                     <h3 className="text-white font-semibold mb-2">For Doctors</h3>
                     <p className="text-gray-400 text-sm leading-relaxed">
-                      Receive structured patient reports upfront. Spend less time gathering history and more time on what matters — treatment.
+                      Receive structured patient reports upfront. Spend less time gathering history and more time on what matters: treatment.
                     </p>
                   </div>
                 </div>

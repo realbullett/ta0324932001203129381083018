@@ -1,13 +1,9 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
     <section className="mx-auto max-w-4xl animate-fade-in-up px-2 md:px-0">
       <div className="text-center mb-10 md:mb-16">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-6">
-          <Shield size={28} className="text-purple-400" />
-        </div>
         <h1 className="text-3xl md:text-6xl font-bold text-white tracking-tight mb-4">
           Privacy Policy
         </h1>
